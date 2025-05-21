@@ -41,7 +41,7 @@ async def date_info(req: Request):
 
     next_weekday = None
     next_holy_day = None
-    for i in range(1, 15):
+    for i in range(1, 4):
         new_date = datetime.strptime(date_str, '%Y-%m-%d') + timedelta(days=i)
         res = get_hebrew_date(new_date.strftime('%Y-%m-%d'))
         events = res.get("events", [])

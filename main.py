@@ -16,6 +16,7 @@ HOLIDAYS = {
     ("סיון", 6): "שבועות"
 }
 
+
 def get_hebrew_date(greg_date: datetime):
     url = "https://www.hebcal.com/converter"
     params = {
@@ -28,35 +29,47 @@ def get_hebrew_date(greg_date: datetime):
     response = requests.get(url, params=params)
     return response.json()
 
-def get_day_info(greg_date: datetime):
-    hebcal_data = get_hebrew_date(greg_date)
-    hebrew_date = hebcal_data.get("hebrew")
-    heb_day = hebcal_data.get("hd")
-    heb_month = hebcal_data.get("hm")
-    weekday = greg_date.weekday()  # 6 = Saturday
 
-    holiday_name = HOLIDAYS.get((heb_month, heb_day))
-    is_holiday = holiday_name is not None
-    is_shabbat = weekday == 6  # רק שבת = 6
+def determine_day_type(date: datetime):
+    heb = get_hebrew_date(date)
+    hd, hm = heb.get("hd"), heb.get("hm")
+    hebrew_date = heb.get("hebrew")
+    weekday = date.weekday()  # 6 = Saturday
 
-    # בדיקת ערב חג
-    next_day = greg_date + timedelta(days=1)
-    next_day_data = get_hebrew_date(next_day)
-    next_hd = next_day_data.get("hd")
-    next_hm = next_day_data.get("hm")
+    is_holiday = (hm, hd) in HOLIDAYS
+    holiday_name = HOLIDAYS.get((hm, hd))
+    is_shabbat = weekday == 6
+
+    # ערב חג
+    next_day = date + timedelta(days=1)
+    next = get_hebrew_date(next_day)
+    next_hd, next_hm = next.get("hd"), next.get("hm")
+    next_weekday = next_day.weekday()
+    next_is_holiday = (next_hm, next_hd) in HOLIDAYS
     next_holiday_name = HOLIDAYS.get((next_hm, next_hd))
+    next_is_shabbat = next_weekday == 6
 
-    is_erev_hag = next_holiday_name is not None
-    erev_hag_name = next_holiday_name if is_erev_hag else None
+    parts = []
 
     if is_holiday:
-        day_type = f"חג ({holiday_name})"
-    elif is_erev_hag:
-        day_type = f"ערב חג ({erev_hag_name})"
+        parts.append(f"חג ({holiday_name})")
+    elif next_is_holiday:
+        text = f"ערב חג ({next_holiday_name})"
+        if next_is_shabbat:
+            text += " שבת"
+        parts.append(text)
     elif is_shabbat:
-        day_type = "שבת"
-    else:
-        day_type = "חול"
+        parts.append("שבת")
+    elif next_is_shabbat:
+        parts.append("ערב שבת")
+
+    # אם חג ושבת חלים יחד
+    if is_holiday and is_shabbat:
+        parts[-1] += " שהוא שבת"
+    elif is_shabbat and holiday_name:
+        parts[-1] += f" (חג {holiday_name})"
+
+    day_type = " ".join(parts) if parts else "חול"
 
     return {
         "hebrew_date": hebrew_date,
@@ -66,18 +79,27 @@ def get_day_info(greg_date: datetime):
         "holiday_name": holiday_name if is_holiday else ("שבת" if is_shabbat else None)
     }
 
-def find_next_day(greg_date: datetime, target_type: str):
-    for i in range(1, 30):
-        check_date = greg_date + timedelta(days=i)
-        info = get_day_info(check_date)
-        if target_type == "חול" and not info["is_shabbat"] and not info["is_holiday"]:
-            return check_date.strftime("%Y-%m-%d")
-        if target_type == "קודש" and (info["is_shabbat"] or info["is_holiday"]):
+
+def find_next_weekday(from_date: datetime):
+    for i in range(1, 15):
+        date = from_date + timedelta(days=i)
+        info = determine_day_type(date)
+        if not info["is_holiday"] and not info["is_shabbat"]:
+            return date.strftime("%Y-%m-%d")
+    return None
+
+
+def find_next_holy_day(from_date: datetime):
+    for i in range(1, 8):  # עד 7 ימים קדימה בלבד
+        date = from_date + timedelta(days=i)
+        info = determine_day_type(date)
+        if info["is_holiday"] or info["is_shabbat"]:
             return {
-                "date": check_date.strftime("%Y-%m-%d"),
+                "date": date.strftime("%Y-%m-%d"),
                 "name": info["holiday_name"]
             }
     return None
+
 
 @app.post("/date-info")
 async def date_info(req: Request):
@@ -91,15 +113,15 @@ async def date_info(req: Request):
     except ValueError:
         return {"error": "Invalid date format. Use YYYY-MM-DD."}
 
-    today_info = get_day_info(date_obj)
-    next_weekday = find_next_day(date_obj, "חול")
-    next_holy_day = find_next_day(date_obj, "קודש")
+    today_info = determine_day_type(date_obj)
+    next_weekday = find_next_weekday(date_obj)
+    next_holy = find_next_holy_day(date_obj)
 
     return {
         "input_date": date_str,
         "hebrew_date": today_info["hebrew_date"],
         "day_type": today_info["day_type"],
         "next_weekday": next_weekday,
-        "next_holy_day_date": next_holy_day["date"] if next_holy_day else None,
-        "next_holy_day_name": next_holy_day["name"] if next_holy_day else None
+        "next_holy_day_date": next_holy["date"] if next_holy else None,
+        "next_holy_day_name": next_holy["name"] if next_holy else None
     }

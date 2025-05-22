@@ -34,11 +34,11 @@ def determine_day_type(date: datetime):
     heb = get_hebrew_date(date)
     hd, hm = heb.get("hd"), heb.get("hm")
     hebrew_date = heb.get("hebrew")
-    weekday = date.weekday()  # 6 = Saturday
+    weekday = date.weekday()  # 5 = Saturday
 
     is_holiday = (hm, hd) in HOLIDAYS
     holiday_name = HOLIDAYS.get((hm, hd))
-    is_shabbat = weekday == 6
+    is_shabbat = weekday == 5
 
     # ערב חג
     next_day = date + timedelta(days=1)
@@ -47,7 +47,7 @@ def determine_day_type(date: datetime):
     next_weekday = next_day.weekday()
     next_is_holiday = (next_hm, next_hd) in HOLIDAYS
     next_holiday_name = HOLIDAYS.get((next_hm, next_hd))
-    next_is_shabbat = next_weekday == 6
+    next_is_shabbat = next_weekday == 5
 
     parts = []
     if is_shabbat:

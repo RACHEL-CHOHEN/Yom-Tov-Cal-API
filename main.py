@@ -49,39 +49,28 @@ def determine_day_type(date: datetime):
     next_holiday_name = HOLIDAYS.get((next_hm, next_hd))
     next_is_shabbat = next_weekday == 6
 
-    parts = []
-
-    if is_holiday:
-        parts.append(f"חג ({holiday_name})")
-    elif next_is_holiday:
-        text = f"ערב חג ({next_holiday_name})"
-        if next_is_shabbat:
-            text += " שבת"
-        parts.append(text)
-    elif is_shabbat:
-        parts.append("שבת")
+    parts = ""
+    if is_shabbat:
+        parts = "שבת "
     elif next_is_shabbat:
-        parts.append("ערב שבת")
+        parts = "ערב שבת "
+    if is_holiday:
+        parts += f"חג ({holiday_name})"
+    elif next_is_holiday:
+        parts += f"ערב חג ({next_holiday_name})"
 
-    # אם חג ושבת חלים יחד
-    if is_holiday and is_shabbat:
-        parts[-1] += " שהוא שבת"
-    elif is_shabbat and holiday_name:
-        parts[-1] += f" (חג {holiday_name})"
-
-    day_type = " ".join(parts) if parts else "חול"
+    day_type = parts if parts <> '' else "חול"
 
     return {
         "hebrew_date": hebrew_date,
         "day_type": day_type,
         "is_holiday": is_holiday,
         "is_shabbat": is_shabbat,
-        "holiday_name": holiday_name if is_holiday else ("שבת" if is_shabbat else None)
     }
 
 
 def find_next_weekday(from_date: datetime):
-    for i in range(1, 15):
+    for i in range(1, 7):
         date = from_date + timedelta(days=i)
         info = determine_day_type(date)
         if not info["is_holiday"] and not info["is_shabbat"]:
@@ -96,7 +85,7 @@ def find_next_holy_day(from_date: datetime):
         if info["is_holiday"] or info["is_shabbat"]:
             return {
                 "date": date.strftime("%Y-%m-%d"),
-                "name": info["holiday_name"]
+                "name": info["day_type"]
             }
     return None
 

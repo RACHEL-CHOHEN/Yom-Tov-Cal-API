@@ -71,11 +71,19 @@ def determine_day_type(date: datetime):
 
 
 def find_next_weekday(from_date: datetime):
+    close_holidays_date = []
     for i in range(1, 7):
         date = from_date + timedelta(days=i)
         info = determine_day_type(date)
+        heb=info["heb"]
+        heDateParts = heb.get("heDateParts")
         if not info["is_holiday"] and not info["is_shabbat"]:
-            return date.strftime("%Y-%m-%d")
+            return {
+                "next_yom_hol": date.strftime("%Y-%m-%d"),
+                "close_holidays_date": heDateParts,
+            }
+        else 
+            close_holidays_date.append() 
     return None
 
 
@@ -109,10 +117,10 @@ async def date_info(req: Request):
 
     return {
         "input_date": date_str,
-        "hebrew_date": today_info["hebrew_date"],
         "hebrew_date_from heb_cal": today_info["heb"],
         "day_type": today_info["day_type"],
-        "next_weekday": next_weekday,
+        "close_holy_days_heb_date": next_weekday["close_holidays_date"],
+        "next_weekday_not_yov_tov": next_weekday["next_yom_hol"],
         "next_holy_day_date": next_holy["date"] if next_holy else None,
         "next_holy_day_name": next_holy["name"] if next_holy else None
     }

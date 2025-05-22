@@ -49,7 +49,7 @@ def determine_day_type(date: datetime):
     next_holiday_name = HOLIDAYS.get((next_hm, next_hd))
     next_is_shabbat = next_weekday == 6
 
-    parts = ""
+    parts = []
     if is_shabbat:
         parts.append("שבת")
     elif next_is_shabbat:

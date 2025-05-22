@@ -66,6 +66,8 @@ def determine_day_type(date: datetime):
         "day_type": day_type,
         "is_holiday": is_holiday,
         "is_shabbat": is_shabbat,
+        "weekday": weekday,
+        "next": next,
     }
 
 
@@ -108,7 +110,9 @@ async def date_info(req: Request):
 
     return {
         "input_date": date_str,
+        "weekday": today_info["weekday"],
         "hebrew_date": today_info["hebrew_date"],
+        "next_hebrew_date": today_info["next"],
         "day_type": today_info["day_type"],
         "next_weekday": next_weekday,
         "next_holy_day_date": next_holy["date"] if next_holy else None,

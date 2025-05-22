@@ -51,15 +51,15 @@ def determine_day_type(date: datetime):
 
     parts = ""
     if is_shabbat:
-        parts = "שבת "
+        parts.append("שבת")
     elif next_is_shabbat:
-        parts = "ערב שבת "
+        parts.append("ערב שבת")
     if is_holiday:
-        parts += f"חג ({holiday_name})"
+        parts.append(f"חג ({holiday_name})")
     elif next_is_holiday:
-        parts += f"ערב חג ({next_holiday_name})"
+        parts.append(f"ערב חג ({next_holiday_name})")
 
-    day_type = parts if parts <> '' else "חול"
+    day_type = " ".join(parts) if parts else "חול"
 
     return {
         "hebrew_date": hebrew_date,

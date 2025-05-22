@@ -82,8 +82,8 @@ def find_next_weekday(from_date: datetime):
                 "next_yom_hol": date.strftime("%Y-%m-%d"),
                 "close_holidays_date": heDateParts,
             }
-        else 
-            close_holidays_date.append() 
+        else:
+            close_holidays_date.append(heDateParts) 
     return None
 
 

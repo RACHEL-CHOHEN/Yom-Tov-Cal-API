@@ -80,7 +80,7 @@ def find_next_weekday(from_date: datetime):
         if not info["is_holiday"] and not info["is_shabbat"]:
             return {
                 "next_yom_hol": date.strftime("%Y-%m-%d"),
-                "close_holidays_date": heDateParts,
+                "close_holidays_date": close_holidays_date,
             }
         else:
             close_holidays_date.append(heDateParts) 

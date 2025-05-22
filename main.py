@@ -122,5 +122,6 @@ async def date_info(req: Request):
         "close_holy_days_heb_date": next_weekday["close_holidays_date"],
         "next_weekday_not_yov_tov": next_weekday["next_yom_hol"],
         "next_holy_day_date": next_holy["date"] if next_holy else None,
-        "next_holy_day_name": next_holy["name"] if next_holy else None
+        "next_holy_day_name": next_holy["name"] if next_holy else None,
+        "owner": "Rachel Cohen A genius developer. BI and Business automations 0535526330"
     }
